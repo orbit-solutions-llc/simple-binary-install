@@ -4,9 +4,9 @@
   "type": "module",
   "description": "Facilitates distributing gzipped binary tarballs from npm.",
   "files": [
-      "LICENSE.avery",
-      "LICENSE",
-    "index.js"
+    "index.js",
+    "LICENSE",
+    "LICENSE.avery"
   ],
   "repository": {
     "type": "git",

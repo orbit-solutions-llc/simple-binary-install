@@ -48,7 +48,7 @@ const error = (msg) => {
 }
 
 /**
- * "Simplified" version of binaray-install package, modified to use ESM and no external dependencies.
+ * "Simplified" version of binaray-install package, modified to use ESM.
  *
  * https://www.npmjs.com/package/binary-install
  */
@@ -146,7 +146,7 @@ class Binary {
         if (header.type === "file") {
           entry.pipe(createWriteStream(this.binaryPath, { mode: header.mode }))
         }
-        entry.resume() // the entry is the stream also
+        entry.resume()
       }
       if (!suppressLogs) {
         console.log(`${this.name} has been installed!`)
