@@ -1,0 +1,38 @@
+{
+  "name": "simple-binary-install",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Facilitates distributing gzipped binary tarballs from npm.",
+  "files": [
+      "LICENSE.avery",
+      "LICENSE",
+    "index.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://code.orbitsolutions.dev/orb-it-solutions/simple-binary-install.git"
+  },
+  "bugs": {
+    "url": "https://code.orbitsolutions.dev/orb-it-solutions/simple-binary-install/issues"
+  },
+  "scripts": {
+    "format": "biome"
+  },
+  "keywords": [
+    "binary",
+    "extract",
+    "install",
+    "rust",
+    "stream",
+    "tarball",
+    "tar"
+  ],
+  "author": "Orville Bennett",
+  "license": "MIT",
+  "dependencies": {
+    "tar-stream": "3.1.6"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.4.1"
+  }
+}
