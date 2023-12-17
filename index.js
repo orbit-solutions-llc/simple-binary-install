@@ -1,13 +1,5 @@
 import { spawnSync } from "node:child_process"
-import {
-  createWriteStream,
-  existsSync,
-  lstatSync,
-  mkdirSync,
-  readdirSync,
-  rmdirSync,
-  unlinkSync
-} from "node:fs"
+import { createWriteStream, existsSync, mkdirSync, rmSync } from "node:fs"
 import { join, dirname } from "node:path"
 import { Readable } from "node:stream"
 import { fileURLToPath } from "node:url"
@@ -16,25 +8,11 @@ import { extract } from "tar-stream"
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 /**
- * `rm -rf` for node.js copied from the [rmrf](https://www.npmjs.com/package/rmrf) package
- *
- * Copyright (c) 2013 Darcy Murphy
- * @param {string} dirPath
+ * `rm -rf` analog
  */
 const rimraf = function (dirPath) {
   if (existsSync(dirPath)) {
-    let files = readdirSync(dirPath)
-    if (files && files.length > 0) {
-      for (let i = 0; i < files.length; i++) {
-        let filePath = dirPath + "/" + files[i]
-        if (lstatSync(filePath).isDirectory()) {
-          rimraf(filePath)
-        } else {
-          unlinkSync(filePath)
-        }
-      }
-    }
-    rmdirSync(dirPath)
+    rmSync(dirPath, { recursive: true, force: true })
   }
 }
 
@@ -122,9 +100,7 @@ class Binary {
       return Promise.resolve()
     }
 
-    if (existsSync(this.installDirectory)) {
-      rimraf(this.installDirectory)
-    }
+    rimraf(this.installDirectory)
 
     mkdirSync(this.installDirectory, { recursive: true })
 
@@ -134,10 +110,10 @@ class Binary {
 
     try {
       let res = await fetch(this.url, { ...fetchOptions })
-      let gunzip = new DecompressionStream("gzip")
+      let gunzipper = new DecompressionStream("gzip")
       const extractor = extract()
 
-      let tarball = res.body.pipeThrough(gunzip)
+      let tarball = res.body.pipeThrough(gunzipper)
       Readable.fromWeb(tarball).pipe(extractor)
 
       // https://streams.spec.whatwg.org/#rs-asynciterator
