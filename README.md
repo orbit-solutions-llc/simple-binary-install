@@ -2,7 +2,7 @@
 
 Utility to facilitate distributing gzipped binary tarballs.
 
-This package is published to npm as [`simple-binary-install`](https://npmjs.com/package/simple-binary-install) and provides convenience functions for distributing binaries via npm. It is intended to be used for rust projects which are being wrapped as npm packages.
+This package is published to npm as [`simple-binary-install`](https://npmjs.com/package/simple-binary-install) and provides convenience functions for distributing binaries via npm. It may work fine with *deno* and *bun* also, but those runtimes have not been tested yet. `simple-binary-install` is intended to be used to allow rust binaries for multiple platforms to be distributed via npm packages.
 
 ## Maintenance
 
@@ -14,9 +14,9 @@ This project has been built for the needs of [translocate](https://crates.io/cra
 
 ## But Why?
 
-After initially using `binary-install` and running an npm audit I noticed it had a vulnerability because it was using a very old version of axios. I updated the code to use a newer version of axios and then thought, "Why use axios at all?".
+After initially using `binary-install` then running an npm audit, I noticed it had a vulnerability because it was using a very old version of `axios`. I updated the code to use a newer version of `axios` and then thought, "Why use axios at all?".
 
-After removing the axios dependency and switching to `fetch()` for downloads to tar package did not play nicely with the node streaming APIs in use and I tried a new tar package, which is how `tar-stream` became the sole dependency.
+After removing the `axios` dependency and switching to `fetch()` for downloads the `tar` package did not play nicely with the node streaming APIs in use so I tried a new tar package, which is how `tar-stream` became the sole dependency.
 
 Ultimately I'd like to have no external dependencies, but that's probably a few months away.
 
