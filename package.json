@@ -3,6 +3,7 @@
   "version": "0.1.2",
   "type": "module",
   "description": "Facilitates distributing gzipped binary tarballs from npm.",
+  "main":"index.js",
   "files": [
     "index.js",
     "LICENSE",

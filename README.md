@@ -21,7 +21,7 @@ After removing the `axios` dependency and switching to `fetch()` for downloads t
 Ultimately I'd like to have no external dependencies, but that's probably a few months away.
 
 ## Goals
-- To have one simple package, with a few dependencies as possible that does that task that is needed.
+- To have one simple package, with as few dependencies as possible that does that task that is needed.
   What is that task?
   1. Download a gzipped tarball (`.tar.gz` file)
   1. Ungzip tarball

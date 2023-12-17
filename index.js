@@ -50,7 +50,7 @@ const error = (msg) => {
 /**
  * "Simplified" version of binaray-install package, modified to use ESM.
  *
- * https://www.npmjs.com/package/binary-install
+ * Derived from https://www.npmjs.com/package/binary-install. See LICENSE.avery for license info.
  */
 class Binary {
   /**
@@ -140,13 +140,14 @@ class Binary {
       let tarball = res.body.pipeThrough(gunzip)
       Readable.fromWeb(tarball).pipe(extractor)
 
-      for await (const entry of extractor) {
-        let header = entry.header
+      // https://streams.spec.whatwg.org/#rs-asynciterator
+      for await (const chunk of extractor) {
+        let header = chunk.header
 
         if (header.type === "file") {
-          entry.pipe(createWriteStream(this.binaryPath, { mode: header.mode }))
+          chunk.pipe(createWriteStream(this.binaryPath, { mode: header.mode }))
         }
-        entry.resume()
+        chunk.resume()
       }
       if (!suppressLogs) {
         console.log(`${this.name} has been installed!`)
