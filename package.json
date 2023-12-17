@@ -16,7 +16,7 @@
     "url": "https://code.orbitsolutions.dev/orb-it-solutions/simple-binary-install/issues"
   },
   "scripts": {
-    "format": "biome"
+    "format": "biome format --write ."
   },
   "keywords": [
     "binary",
