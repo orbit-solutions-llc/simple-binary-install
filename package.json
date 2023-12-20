@@ -30,7 +30,7 @@
   ],
   "author": "Orville Bennett",
   "license": "MIT",
-  "optionalDependencies": {
+  "dependencies": {
     "tar-stream": "3.1.6"
   },
   "devDependencies": {

@@ -3,6 +3,7 @@ import { createWriteStream, existsSync, mkdirSync, rmSync } from "node:fs"
 import { join, dirname } from "node:path"
 import { Readable } from "node:stream"
 import { fileURLToPath } from "node:url"
+import { extract } from "tar-stream"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -107,40 +108,25 @@ class Binary {
       console.log(`Downloading release from ${this.url}`)
     }
 
-    let tar
-    try {
-      tar = await import("tar-stream")
-    } catch {
-      tar = undefined
-      console.error('Using native tar binary for extraction.')
-    }
-
     try {
       let res = await fetch(this.url, { ...fetchOptions })
       let gunzipper = new DecompressionStream("gzip")
 
-      if (tar) {
-        const extractor = tar.extract()
+      const extractor = extract()
 
-        const tarball = res.body.pipeThrough(gunzipper)
-        Readable.fromWeb(tarball).pipe(extractor)
+      const tarball = res.body.pipeThrough(gunzipper)
+      Readable.fromWeb(tarball).pipe(extractor)
 
-        // https://streams.spec.whatwg.org/#rs-asynciterator
-        for await (const chunk of extractor) {
-          let header = chunk.header
+      // https://streams.spec.whatwg.org/#rs-asynciterator
+      for await (const chunk of extractor) {
+        let header = chunk.header
 
-          if (header.type === "file") {
-            chunk.pipe(createWriteStream(this.binaryPath, { mode: header.mode }))
-          }
-          chunk.resume()
+        if (header.type === "file") {
+          chunk.pipe(createWriteStream(this.binaryPath, { mode: header.mode }))
         }
-      } else {
-        const tarfile = `${this.binaryPath}.tar`
-        const stream = createWriteStream(tarfile)
-
-        Readable.fromWeb(res.body.pipeThrough(gunzipper)).pipe(stream)
-        exec(`tar -xf ${tarfile} -C ${this.installDirectory} --strip-components=1`)
+        chunk.resume()
       }
+
       if (!suppressLogs) {
         console.log(`${this.name} has been installed!`)
       }
