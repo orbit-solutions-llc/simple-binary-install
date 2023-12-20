@@ -1,6 +1,6 @@
 {
   "name": "simple-binary-install",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "type": "module",
   "description": "Facilitates distributing gzipped binary tarballs from npm.",
   "main":"index.js",
