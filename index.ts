@@ -1,7 +1,8 @@
-import { spawnSync, exec } from "node:child_process"
+import { spawnSync, type SpawnSyncOptionsWithStringEncoding } from "node:child_process"
 import { createWriteStream, existsSync, mkdirSync, rmSync } from "node:fs"
 import { join, dirname } from "node:path"
 import { Readable } from "node:stream"
+import type { ReadableStream } from "node:stream/web"
 import { fileURLToPath } from "node:url"
 import { extract } from "tar-stream"
 
@@ -10,7 +11,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 /**
  * `rm -rf` analog
  */
-const rimraf = function (dirPath) {
+const rimraf = function (dirPath: string) {
   if (existsSync(dirPath)) {
     rmSync(dirPath, { recursive: true, force: true })
   }
@@ -18,9 +19,9 @@ const rimraf = function (dirPath) {
 
 /**
  * Prints an error message and then exits program with an error signal.
- * @param {string} msg - message to be printed to the console
+ * @param {string | Error} msg - message to be printed to the console
  */
-const error = (msg) => {
+const error = (msg: string | Error) => {
   console.error(msg)
   process.exit(1)
 }
@@ -31,14 +32,19 @@ const error = (msg) => {
  * Derived from https://www.npmjs.com/package/binary-install. See LICENSE.avery for license info.
  */
 class Binary {
+  url: string
+  name: string
+  installDirectory: string
+  binaryPath: string
+
   /**
    * Constructor for the Binary class.
    * @param {string} name - package name
    * @param {string} url - location of the .tar.gz file for this package
    * @param {{installDirectory: string}=} config - config object containing install directory location
    */
-  constructor(name, url, config) {
-    let errors = []
+  constructor(name: string, url: string, config?: {installDirectory: string}) {
+    let errors: string[] = []
     if (typeof url !== "string") {
       errors.push("url must be a string")
     } else {
@@ -57,8 +63,7 @@ class Binary {
     }
 
     if (
-      config &&
-      config.installDirectory &&
+      config?.installDirectory &&
       typeof config.installDirectory !== "string"
     ) {
       errors.push("config.installDirectory must be a string")
@@ -114,8 +119,8 @@ class Binary {
 
       const extractor = extract()
 
-      const tarball = res.body.pipeThrough(gunzipper)
-      Readable.fromWeb(tarball).pipe(extractor)
+      const tarball = res.body?.pipeThrough(gunzipper) as ReadableStream
+      tarball && Readable.fromWeb(tarball).pipe(extractor)
 
       // https://streams.spec.whatwg.org/#rs-asynciterator
       for await (const chunk of extractor) {
@@ -144,7 +149,7 @@ class Binary {
       .then(() => {
         const [, , ...args] = process.argv
 
-        const options = { cwd: process.cwd(), stdio: "inherit" }
+        const options: SpawnSyncOptionsWithStringEncoding = { cwd: process.cwd(), stdio: "inherit", encoding: "utf-8" }
 
         const result = spawnSync(this.binaryPath, args, options)
 
@@ -152,7 +157,7 @@ class Binary {
           error(result.error)
         }
 
-        process.exit(result.status)
+        process.exit(result.status ?? undefined)
       })
       .catch((e) => {
         error(e.message)
