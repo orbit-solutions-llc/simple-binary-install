@@ -50,7 +50,7 @@ class Binary {
     } else {
       try {
         new URL(url)
-      } catch (e) {
+      } catch (e: any) {
         errors.push(e)
       }
     }
@@ -95,7 +95,7 @@ class Binary {
     return existsSync(this.binaryPath)
   }
 
-  async install(fetchOptions, suppressLogs = false) {
+  async install(fetchOptions: RequestInit, suppressLogs = false) {
     if (this.exists()) {
       if (!suppressLogs) {
         console.error(
@@ -135,12 +135,12 @@ class Binary {
       if (!suppressLogs) {
         console.log(`${this.name} has been installed!`)
       }
-    } catch (e) {
+    } catch (e: any) {
       return error(`Error fetching release: ${e.message}`)
     }
   }
 
-  run(fetchOptions) {
+  run(fetchOptions: RequestInit) {
     const promise = !this.exists()
       ? this.install(fetchOptions, true)
       : Promise.resolve()
