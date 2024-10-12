@@ -94,11 +94,14 @@ class Binary {
     this.binaryPath = join(this.installDirectory, `${this.name}`)
   }
 
-  exists() {
+  exists(): boolean {
     return existsSync(this.binaryPath)
   }
 
-  async install(fetchOptions: RequestInit, suppressLogs = false) {
+  async install(
+    fetchOptions: RequestInit,
+    suppressLogs = false,
+  ): Promise<void> {
     if (this.exists()) {
       if (!suppressLogs) {
         console.error(
@@ -150,7 +153,7 @@ class Binary {
     }
   }
 
-  run(fetchOptions: RequestInit) {
+  run(fetchOptions: RequestInit): void {
     const promise = !this.exists()
       ? this.install(fetchOptions, true)
       : Promise.resolve()
