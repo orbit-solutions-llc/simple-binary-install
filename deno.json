@@ -1,0 +1,20 @@
+{
+  "fmt": {
+    "include": [
+      "*.ts"
+    ],
+    "indentWidth": 2,
+    "lineWidth": 120,
+    "semiColons": false,
+    "singleQuote": false,
+    "useTabs": false
+  },
+  "imports": {
+    "@std/fs": "jsr:@std/fs@^1.0.4",
+    "@std/path": "jsr:@std/path@1.0.6",
+    "tar-stream": "npm:tar-stream@3.1.7"
+  },
+  "tasks": {
+    "format": "deno fmt"
+  }
+}
