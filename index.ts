@@ -1,32 +1,28 @@
-import {
-  spawnSync,
-  type SpawnSyncOptionsWithStringEncoding,
-} from "node:child_process"
-import { createWriteStream, existsSync, mkdirSync, rmSync } from "node:fs"
-import { dirname, join } from "node:path"
+import { existsSync } from "@std/fs"
+import { dirname, fromFileUrl, join } from "@std/path"
+import { createWriteStream } from "node:fs"
 import { Readable } from "node:stream"
 import type { ReadableStream } from "node:stream/web"
-import { fileURLToPath } from "node:url"
 import { extract } from "tar-stream"
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
+const __dirname = dirname(fromFileUrl(import.meta.url))
 
 /**
  * `rm -rf` analog
  */
 const rimraf = function (dirPath: string) {
   if (existsSync(dirPath)) {
-    rmSync(dirPath, { recursive: true, force: true })
+    Deno.removeSync(dirPath, { recursive: true })
   }
 }
 
 /**
  * Prints an error message and then exits program with an error signal.
- * @param {string | Error} msg - message to be printed to the console
+ * @param {string | Error | Uint8Array} msg - message to be printed to the console
  */
-const error = (msg: string | Error) => {
+const error = (msg: string | Error | Uint8Array) => {
   console.error(msg)
-  process.exit(1)
+  Deno.exit(1)
 }
 
 /**
@@ -51,7 +47,7 @@ class Binary {
     url: string,
     config?: { installDirectory: string },
   ) {
-    let errors: string[] = []
+    const errors: string[] = []
     if (typeof url !== "string") {
       errors.push("url must be a string")
     } else {
@@ -92,7 +88,7 @@ class Binary {
       join(__dirname, "node_modules", ".bin")
 
     if (!existsSync(this.installDirectory)) {
-      mkdirSync(this.installDirectory, { recursive: true })
+      Deno.mkdirSync(this.installDirectory, { recursive: true })
     }
 
     this.binaryPath = join(this.installDirectory, `${this.name}`)
@@ -114,24 +110,31 @@ class Binary {
 
     rimraf(this.installDirectory)
 
-    mkdirSync(this.installDirectory, { recursive: true })
+    Deno.mkdirSync(this.installDirectory, { recursive: true })
 
     if (!suppressLogs) {
       console.log(`Downloading release from ${this.url}`)
     }
 
     try {
-      let res = await fetch(this.url, { ...fetchOptions })
-      let gunzipper = new DecompressionStream("gzip")
+      const res = await fetch(this.url, { ...fetchOptions })
+      if (!res.body) {
+        throw new Error("Fetched URL has not body content")
+      }
+
+      const gunzipper = new DecompressionStream("gzip")
 
       const extractor = extract()
 
-      const tarball = res.body?.pipeThrough(gunzipper) as ReadableStream
+      // assert that type is ReadableStream<Uint8Array>, instead of globalThis.ReadableStream<Uint8Array>
+      const tarball = res.body.pipeThrough(gunzipper) as ReadableStream<
+        Uint8Array
+      >
       tarball && Readable.fromWeb(tarball).pipe(extractor)
 
       // https://streams.spec.whatwg.org/#rs-asynciterator
       for await (const chunk of extractor) {
-        let header = chunk.header
+        const header = chunk.header
 
         if (header.type === "file") {
           chunk.pipe(createWriteStream(this.binaryPath, { mode: header.mode }))
@@ -143,7 +146,7 @@ class Binary {
         console.log(`${this.name} has been installed!`)
       }
     } catch (e: any) {
-      return error(`Error fetching release: ${e.message}`)
+      return error(`Error fetching release: ${e?.message}`)
     }
   }
 
@@ -154,25 +157,23 @@ class Binary {
 
     promise
       .then(() => {
-        const [, , ...args] = process.argv
-
-        const options: SpawnSyncOptionsWithStringEncoding = {
-          cwd: process.cwd(),
-          stdio: "inherit",
-          encoding: "utf-8",
+        const options: Deno.CommandOptions = {
+          args: Deno.args,
+          cwd: Deno.cwd(),
         }
 
-        const result = spawnSync(this.binaryPath, args, options)
+        const command = new Deno.Command(this.binaryPath, options)
+        const result = command.outputSync()
 
-        if (result.error) {
-          error(result.error)
+        if (!result.success) {
+          error(result.stderr)
         }
 
-        process.exit(result.status ?? undefined)
+        Deno.exit(result.code ?? undefined)
       })
       .catch((e) => {
         error(e.message)
-        process.exit(1)
+        Deno.exit(1)
       })
   }
 }
