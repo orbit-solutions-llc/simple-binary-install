@@ -1,6 +1,9 @@
-import { spawnSync, type SpawnSyncOptionsWithStringEncoding } from "node:child_process"
+import {
+  spawnSync,
+  type SpawnSyncOptionsWithStringEncoding,
+} from "node:child_process"
 import { createWriteStream, existsSync, mkdirSync, rmSync } from "node:fs"
-import { join, dirname } from "node:path"
+import { dirname, join } from "node:path"
 import { Readable } from "node:stream"
 import type { ReadableStream } from "node:stream/web"
 import { fileURLToPath } from "node:url"
@@ -43,7 +46,11 @@ class Binary {
    * @param {string} url - location of the .tar.gz file for this package
    * @param {{installDirectory: string}=} config - config object containing install directory location
    */
-  constructor(name: string, url: string, config?: {installDirectory: string}) {
+  constructor(
+    name: string,
+    url: string,
+    config?: { installDirectory: string },
+  ) {
     let errors: string[] = []
     if (typeof url !== "string") {
       errors.push("url must be a string")
@@ -81,8 +88,8 @@ class Binary {
     }
     this.url = url
     this.name = name
-    this.installDirectory =
-      config?.installDirectory || join(__dirname, "node_modules", ".bin")
+    this.installDirectory = config?.installDirectory ||
+      join(__dirname, "node_modules", ".bin")
 
     if (!existsSync(this.installDirectory)) {
       mkdirSync(this.installDirectory, { recursive: true })
@@ -99,7 +106,7 @@ class Binary {
     if (this.exists()) {
       if (!suppressLogs) {
         console.error(
-          `${this.name} is already installed, skipping installation.`
+          `${this.name} is already installed, skipping installation.`,
         )
       }
       return Promise.resolve()
@@ -149,7 +156,11 @@ class Binary {
       .then(() => {
         const [, , ...args] = process.argv
 
-        const options: SpawnSyncOptionsWithStringEncoding = { cwd: process.cwd(), stdio: "inherit", encoding: "utf-8" }
+        const options: SpawnSyncOptionsWithStringEncoding = {
+          cwd: process.cwd(),
+          stdio: "inherit",
+          encoding: "utf-8",
+        }
 
         const result = spawnSync(this.binaryPath, args, options)
 
