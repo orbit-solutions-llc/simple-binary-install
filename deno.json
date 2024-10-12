@@ -1,4 +1,7 @@
 {
+  "name": "@orbitsolutions/simple-binary-install",
+  "version": "1.0.0-alpha.1",
+  "exports": "./index.ts",
   "fmt": {
     "include": [
       "*.ts"
