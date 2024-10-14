@@ -16,11 +16,16 @@ After using `binary-install` (on which this is based) I ran an `npm audit` and f
 ## Installation
 
 ```shell
-npm i --save-dev simple-binary-install
+deno add jsr:@orb/simple-binary-install
 ```
+
+```shell
+npx jsr add @orb/simple-binary-install
+```
+
 or
 ```shell
-pnpm i -D simple-binary-install
+pnpm dlx jsr add @orb/simple-binary-install
 ```
 
 ## Usage
@@ -35,7 +40,7 @@ An example of its use is given below using an `install.js` file that looks like:
 ```javascript
 #!/usr/bin/env node
 
-import { Binary } from 'simple-binary-install'
+import { Binary } from '@orb/simple-binary-install'
 let binary = new Binary('my-binary', 'https://example.com/binary/tar.gz')
 binary.install()
 ```
@@ -45,7 +50,7 @@ If the install location of the binary needs to be modified, the third parameter 
 ```javascript
 #!/usr/bin/env node
 
-import { Binary } from 'simple-binary-install'
+import { Binary } from '@orb/simple-binary-install'
 let binary = new Binary('my-binary', 'https://example.com/binary/tar.gz', {installDirectory: 'new/location'})
 binary.install()
 ```
@@ -69,7 +74,7 @@ One more change to your project would be needed before your package is ready to 
 ```javascript
 #!/usr/bin/env node
 
-import { Binary } from 'simple-binary-install'
+import { Binary } from '@orb/simple-binary-install'
 let binary = new Binary('my-binary', 'https://example.com/binary/tar.gz')
 binary.run()
 ```

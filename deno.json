@@ -1,6 +1,6 @@
 {
   "version": "1.0.0-alpha.1",
-  "name": "@orbitsolutions/simple-binary-install",
+  "name": "@orb/simple-binary-install",
   "exports": "./index.ts",
   "fmt": {
     "include": [
@@ -19,7 +19,11 @@
   },
   "license": "MIT",
   "publish": {
-    "include": ["index.ts", "LICENSE", "README.md"]
+    "include": [
+      "index.ts",
+      "LICENSE",
+      "README.md"
+    ]
   },
   "tasks": {
     "format": "deno fmt"
