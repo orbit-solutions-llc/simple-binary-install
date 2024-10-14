@@ -22,6 +22,7 @@
     "include": [
       "index.ts",
       "LICENSE",
+      "LICENSE.avery",
       "README.md"
     ]
   },
