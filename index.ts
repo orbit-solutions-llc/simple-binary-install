@@ -110,7 +110,7 @@ class Binary {
     // deno-lint-ignore no-explicit-any
     } catch (_e: any) {
       if (!suppressLogs) {
-        console.error(
+        console.log(
           `${this.installDirectory} not found. Deletion unnecessary.`,
         )
       }
