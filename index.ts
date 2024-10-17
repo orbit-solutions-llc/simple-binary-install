@@ -8,7 +8,7 @@ import { argv, cwd, exit } from "node:process"
 import { Readable } from "node:stream"
 import type { ReadableStream } from "node:stream/web"
 import { fileURLToPath } from "node:url"
-// @deno-types="npm:@types/tar-stream"
+// @deno-types="npm:@types/tar-stream@^3.1.2"
 import { extract } from "tar-stream"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))

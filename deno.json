@@ -12,10 +12,7 @@
     "singleQuote": false,
     "useTabs": false
   },
-  "imports": {
-    "@types/tar-stream": "npm:@types/tar-stream@^3.1.2",
-    "tar-stream": "npm:tar-stream@3.1.7"
-  },
+  "imports": { "tar-stream": "npm:tar-stream@3.1.7" },
   "license": "MIT",
   "publish": {
     "include": [
