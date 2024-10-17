@@ -54,6 +54,7 @@ class Binary {
 
     try {
       new URL(url)
+    // deno-lint-ignore no-explicit-any
     } catch (e: any) {
       errors.push(e)
     }
@@ -106,7 +107,8 @@ class Binary {
     try {
       rmSync(this.installDirectory, { recursive: true })
       installDirClean = true
-    } catch (e: any) {
+    // deno-lint-ignore no-explicit-any
+    } catch (_e: any) {
       if (!suppressLogs) {
         console.error(
           `${this.installDirectory} not found. Deletion unnecessary.`,
@@ -150,6 +152,7 @@ class Binary {
       if (!suppressLogs) {
         console.log(`${this.name} has been installed!`)
       }
+    // deno-lint-ignore no-explicit-any
     } catch (e: any) {
       return error(`Error fetching release: ${e.message}`)
     }
