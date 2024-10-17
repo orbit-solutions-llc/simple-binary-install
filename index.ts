@@ -125,6 +125,11 @@ class Binary {
           await chunk.readable?.pipeTo(
             (await Deno.create(this.binaryPath)).writable,
           )
+          try {
+            await Deno.chmod(this.binaryPath, 0o755)
+          } catch (error) {
+            console.error("Unable to set permissions", error)
+          }
         }
       }
 
