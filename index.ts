@@ -1,20 +1,8 @@
 import { existsSync } from "@std/fs"
 import { dirname, fromFileUrl, join } from "@std/path"
-import { createWriteStream } from "node:fs"
-import { Readable } from "node:stream"
-import type { ReadableStream } from "node:stream/web"
-import { extract } from "tar-stream"
+import { UntarStream } from "@std/tar"
 
 const __dirname = dirname(fromFileUrl(import.meta.url))
-
-/**
- * `rm -rf` analog
- */
-const rimraf = function (dirPath: string) {
-  if (existsSync(dirPath)) {
-    Deno.removeSync(dirPath, { recursive: true })
-  }
-}
 
 /**
  * Prints an error message and then exits program with an error signal.
@@ -26,14 +14,21 @@ const error = (msg: string | Error | Uint8Array) => {
 }
 
 /**
- * Modified version of Binary class from the binary-install package, to use ESM.
+ * Binary class from the `binary-install` package, ported to use ESM and Deno APIs.
+ * This class allows extraction of gunzipped (gzipped) binaries onto the file system.
+ * As it requires access to the file system, any environment which does not provide this
+ * is not a suitable extraction target.
  *
  * Derived from https://www.npmjs.com/package/binary-install. See LICENSE.avery for license info.
  */
 class Binary {
+  /** name of package to install */
   url: string
+  /** location of the **.tar.gz** file for this package */
   name: string
+  /** parent directory for the extracted binary  */
   installDirectory: string
+  /** full location to the extracted binary on the file system */
   binaryPath: string
 
   /**
@@ -48,17 +43,10 @@ class Binary {
     config?: { installDirectory: string },
   ) {
     const errors: string[] = []
-    if (typeof url !== "string") {
-      errors.push("url must be a string")
-    } else {
-      try {
-        new URL(url)
-      } catch (e: any) {
-        errors.push(e)
-      }
-    }
-    if (name && typeof name !== "string") {
-      errors.push("name must be a string")
+    try {
+      new URL(url)
+    } catch (e: any) {
+      errors.push(e)
     }
 
     if (!name) {
@@ -66,8 +54,7 @@ class Binary {
     }
 
     if (
-      config?.installDirectory &&
-      typeof config.installDirectory !== "string"
+      config && typeof config?.installDirectory !== "string"
     ) {
       errors.push("config.installDirectory must be a string")
     }
@@ -87,17 +74,15 @@ class Binary {
     this.installDirectory = config?.installDirectory ||
       join(__dirname, "node_modules", ".bin")
 
-    if (!existsSync(this.installDirectory)) {
-      Deno.mkdirSync(this.installDirectory, { recursive: true })
-    }
-
     this.binaryPath = join(this.installDirectory, `${this.name}`)
   }
 
+  /** checks if binary installation path already exists */
   exists(): boolean {
     return existsSync(this.binaryPath)
   }
 
+  /** downloads, extracts and installs binary from given location on the web */
   async install(
     fetchOptions: RequestInit,
     suppressLogs = false,
@@ -111,8 +96,7 @@ class Binary {
       return Promise.resolve()
     }
 
-    rimraf(this.installDirectory)
-
+    Deno.removeSync(this.installDirectory, { recursive: true })
     Deno.mkdirSync(this.installDirectory, { recursive: true })
 
     if (!suppressLogs) {
@@ -125,31 +109,30 @@ class Binary {
         throw new Error("Fetched URL has not body content")
       }
 
-      const gunzipper = new DecompressionStream("gzip")
-
-      const extractor = extract()
-
-      // assert that type is ReadableStream<Uint8Array>, instead of globalThis.ReadableStream<Uint8Array>
-      const tarball = res.body.pipeThrough(gunzipper) as ReadableStream<
-        Uint8Array
-      >
-      tarball && Readable.fromWeb(tarball).pipe(extractor)
-
       // https://streams.spec.whatwg.org/#rs-asynciterator
-      for await (const chunk of extractor) {
+      for await (
+        const chunk of res.body
+          .pipeThrough(new DecompressionStream("gzip"))
+          .pipeThrough(new UntarStream())
+      ) {
         const header = chunk.header
 
-        if (header.type === "file") {
-          chunk.pipe(createWriteStream(this.binaryPath, { mode: header.mode }))
+        // https://man.freebsd.org/cgi/man.cgi?query=tar&sektion=5&apropos=0&manpath=FreeBSD+15.0
+        // typeflag - Type  of	entry.
+        //   "0"   Regular file.
+        //   "5"   Directory.
+        if (header.typeflag === "0") {
+          await chunk.readable?.pipeTo(
+            (await Deno.create(this.binaryPath)).writable,
+          )
         }
-        chunk.resume()
       }
 
       if (!suppressLogs) {
         console.log(`${this.name} has been installed!`)
       }
     } catch (e: any) {
-      return error(`Error fetching release: ${e?.message}`)
+      return error(`Error fetching release: ${e.message}`)
     }
   }
 
@@ -167,14 +150,17 @@ class Binary {
 
         const command = new Deno.Command(this.binaryPath, options)
         const result = command.outputSync()
+        const decoder = new TextDecoder()
 
         if (!result.success) {
-          error(result.stderr)
+          console.error(decoder.decode(result.stderr))
         }
+
+        console.log(decoder.decode(result.stdout))
 
         Deno.exit(result.code ?? undefined)
       })
-      .catch((e) => {
+      .catch((e: { message: string }) => {
         error(e.message)
         Deno.exit(1)
       })
