@@ -14,15 +14,6 @@ import { extract } from "tar-stream"
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 /**
- * `rm -rf` analog
- */
-const rimraf = function (dirPath: string) {
-  if (existsSync(dirPath)) {
-    rmSync(dirPath, { recursive: true, force: true })
-  }
-}
-
-/**
  * Prints an error message and then exits program with an error signal.
  * @param {string | Error} msg - message to be printed to the console
  */
@@ -35,7 +26,7 @@ const error = (msg: string | Error) => {
  * Binary class from the `binary-install` package, ported to use ESM and Deno APIs.
  * This class allows extraction of gunzipped (gzipped) binaries onto the file system.
  * As it requires access to the file system, any environment which does not provide this
- * is not a suitable extraction target. *
+ * is not a suitable extraction target.
  * Derived from https://www.npmjs.com/package/binary-install. See LICENSE.avery for license info.
  */
 class Binary {
