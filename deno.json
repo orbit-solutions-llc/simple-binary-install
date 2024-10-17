@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-alpha.3",
   "name": "@orb/simple-binary-install",
   "exports": "./index.ts",
   "fmt": {
@@ -12,7 +12,9 @@
     "singleQuote": false,
     "useTabs": false
   },
-  "imports": { "tar-stream": "npm:tar-stream@3.1.7" },
+  "imports": {
+    "tar-stream": "npm:tar-stream@3.1.7"
+  },
   "license": "MIT",
   "publish": {
     "include": [
