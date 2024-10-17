@@ -4,6 +4,7 @@ import {
 } from "node:child_process"
 import { createWriteStream, existsSync, mkdirSync, rmSync } from "node:fs"
 import { dirname, join } from "node:path"
+import { argv, cwd, exit } from "node:process"
 import { Readable } from "node:stream"
 import type { ReadableStream } from "node:stream/web"
 import { fileURLToPath } from "node:url"
@@ -27,7 +28,7 @@ const rimraf = function (dirPath: string) {
  */
 const error = (msg: string | Error) => {
   console.error(msg)
-  process.exit(1)
+  exit(1)
 }
 
 /**
@@ -58,27 +59,16 @@ class Binary {
     url: string,
     config?: { installDirectory: string },
   ) {
-    let errors: string[] = []
-    if (typeof url !== "string") {
-      errors.push("url must be a string")
-    } else {
-      try {
-        new URL(url)
-      } catch (e: any) {
-        errors.push(e)
-      }
-    }
-    if (name && typeof name !== "string") {
-      errors.push("name must be a string")
-    }
+    const errors: string[] = []
 
-    if (!name) {
-      errors.push("You must specify the name of your binary")
+    try {
+      new URL(url)
+    } catch (e: any) {
+      errors.push(e)
     }
 
     if (
-      config?.installDirectory &&
-      typeof config.installDirectory !== "string"
+      config && typeof config.installDirectory !== "string"
     ) {
       errors.push("config.installDirectory must be a string")
     }
@@ -97,10 +87,6 @@ class Binary {
     this.name = name
     this.installDirectory = config?.installDirectory ||
       join(__dirname, "node_modules", ".bin")
-
-    if (!existsSync(this.installDirectory)) {
-      mkdirSync(this.installDirectory, { recursive: true })
-    }
 
     this.binaryPath = join(this.installDirectory, `${this.name}`)
   }
@@ -124,26 +110,45 @@ class Binary {
       return Promise.resolve()
     }
 
-    rimraf(this.installDirectory)
+    let installDirClean = false
 
-    mkdirSync(this.installDirectory, { recursive: true })
+    try {
+      rmSync(this.installDirectory, { recursive: true })
+      installDirClean = true
+    } catch (e: any) {
+      if (!suppressLogs) {
+        console.error(
+          `${this.installDirectory} not found. Deletion unnecessary.`,
+        )
+      }
+    }
+
+    if (installDirClean) {
+      mkdirSync(this.installDirectory, { recursive: true })
+    } else {
+      error(`Error cleaning installation directory`)
+    }
 
     if (!suppressLogs) {
       console.log(`Downloading release from ${this.url}`)
     }
 
     try {
-      let res = await fetch(this.url, { ...fetchOptions })
-      let gunzipper = new DecompressionStream("gzip")
+      const res = await fetch(this.url, { ...fetchOptions })
+      if (!res.body) {
+        throw new Error("Fetched URL has not body content")
+      }
 
       const extractor = extract()
 
-      const tarball = res.body?.pipeThrough(gunzipper) as ReadableStream
-      tarball && Readable.fromWeb(tarball).pipe(extractor)
+      const tarball = res.body.pipeThrough(
+        new DecompressionStream("gzip"),
+      ) as ReadableStream<Uint8Array>
+      Readable.fromWeb(tarball).pipe(extractor)
 
       // https://streams.spec.whatwg.org/#rs-asynciterator
       for await (const chunk of extractor) {
-        let header = chunk.header
+        const header = chunk.header
 
         if (header.type === "file") {
           chunk.pipe(createWriteStream(this.binaryPath, { mode: header.mode }))
@@ -166,10 +171,10 @@ class Binary {
 
     promise
       .then(() => {
-        const [, , ...args] = process.argv
+        const [, , ...args] = argv
 
         const options: SpawnSyncOptionsWithStringEncoding = {
-          cwd: process.cwd(),
+          cwd: cwd(),
           stdio: "inherit",
           encoding: "utf-8",
         }
@@ -180,11 +185,11 @@ class Binary {
           error(result.error)
         }
 
-        process.exit(result.status ?? undefined)
+        exit(result.status ?? undefined)
       })
-      .catch((e) => {
+      .catch((e: { message: string }) => {
         error(e.message)
-        process.exit(1)
+        exit(1)
       })
   }
 }
