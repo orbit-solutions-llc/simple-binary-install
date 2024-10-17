@@ -7,6 +7,7 @@ import { dirname, join } from "node:path"
 import { Readable } from "node:stream"
 import type { ReadableStream } from "node:stream/web"
 import { fileURLToPath } from "node:url"
+// @deno-types="npm:@types/tar-stream"
 import { extract } from "tar-stream"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -30,14 +31,20 @@ const error = (msg: string | Error) => {
 }
 
 /**
- * Modified version of Binary class from the binary-install package, to use ESM.
- *
+ * Binary class from the `binary-install` package, ported to use ESM and Deno APIs.
+ * This class allows extraction of gunzipped (gzipped) binaries onto the file system.
+ * As it requires access to the file system, any environment which does not provide this
+ * is not a suitable extraction target. *
  * Derived from https://www.npmjs.com/package/binary-install. See LICENSE.avery for license info.
  */
 class Binary {
+  /** name of package to install */
   url: string
+  /** location of the **.tar.gz** file for this package */
   name: string
+  /** parent directory for the extracted binary  */
   installDirectory: string
+  /** full location to the extracted binary on the file system */
   binaryPath: string
 
   /**
@@ -98,10 +105,12 @@ class Binary {
     this.binaryPath = join(this.installDirectory, `${this.name}`)
   }
 
+  /** checks if binary installation path already exists */
   exists(): boolean {
     return existsSync(this.binaryPath)
   }
 
+  /** downloads, extracts and installs binary from given location on the web */
   async install(
     fetchOptions: RequestInit,
     suppressLogs = false,
