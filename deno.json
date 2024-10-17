@@ -1,10 +1,10 @@
 {
-  "version": "1.0.0-alpha.1",
+  "version": "0.9.0",
   "name": "@orb/simple-binary-install",
   "exports": "./index.ts",
   "fmt": {
     "include": [
-      "*.ts"
+      "index.ts"
     ],
     "indentWidth": 2,
     "lineWidth": 80,
