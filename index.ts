@@ -96,8 +96,23 @@ class Binary {
       return Promise.resolve()
     }
 
-    Deno.removeSync(this.installDirectory, { recursive: true })
-    Deno.mkdirSync(this.installDirectory, { recursive: true })
+    let installDirClean = false
+    try {
+      Deno.removeSync(this.installDirectory, { recursive: true })
+      installDirClean = true
+    } catch (e: any) {
+      if (!suppressLogs) {
+        console.error(
+          `${this.installDirectory} not found. Deletion unnecessary.`,
+        )
+      }
+    }
+
+    if (installDirClean) {
+      Deno.mkdirSync(this.installDirectory, { recursive: true })
+    } else {
+      error(`Error cleaning installation directory`)
+    }
 
     if (!suppressLogs) {
       console.log(`Downloading release from ${this.url}`)
