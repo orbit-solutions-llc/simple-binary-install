@@ -80,6 +80,12 @@ class Binary {
     this.installDirectory = config?.installDirectory ||
       join(__dirname, "node_modules", ".bin")
 
+    try {
+      mkdirSync(this.installDirectory, { recursive: true })
+    } catch (e: any) {
+      error(`Unable to create installation directory`)
+    }
+
     this.binaryPath = join(this.installDirectory, `${this.name}`)
   }
 
