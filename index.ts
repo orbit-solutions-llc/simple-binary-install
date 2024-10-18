@@ -54,7 +54,7 @@ class Binary {
 
     try {
       new URL(url)
-    // deno-lint-ignore no-explicit-any
+      // deno-lint-ignore no-explicit-any
     } catch (e: any) {
       errors.push(e)
     }
@@ -107,7 +107,7 @@ class Binary {
     try {
       rmSync(this.installDirectory, { recursive: true })
       installDirClean = true
-    // deno-lint-ignore no-explicit-any
+      // deno-lint-ignore no-explicit-any
     } catch (_e: any) {
       if (!suppressLogs) {
         console.log(
@@ -152,12 +152,15 @@ class Binary {
       if (!suppressLogs) {
         console.log(`${this.name} has been installed!`)
       }
-    // deno-lint-ignore no-explicit-any
+      // deno-lint-ignore no-explicit-any
     } catch (e: any) {
       return error(`Error fetching release: ${e.message}`)
     }
   }
 
+  /** Installs and runs binary. It will print a console error if failure occurs,
+   * or if the exit code after running is non-zero.
+   */
   run(fetchOptions: RequestInit): void {
     const promise = !this.exists()
       ? this.install(fetchOptions, true)
