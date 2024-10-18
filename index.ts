@@ -82,7 +82,8 @@ class Binary {
 
     try {
       mkdirSync(this.installDirectory, { recursive: true })
-    } catch (e: any) {
+      // deno-lint-ignore no-explicit-any
+    } catch (_e: any) {
       error(`Unable to create installation directory`)
     }
 
