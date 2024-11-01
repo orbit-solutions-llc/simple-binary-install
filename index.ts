@@ -82,8 +82,7 @@ class Binary {
 
     try {
       mkdirSync(this.installDirectory, { recursive: true })
-      // deno-lint-ignore no-explicit-any
-    } catch (_e: any) {
+    } catch (_e: unknown) {
       error(`Unable to create installation directory`)
     }
 
@@ -93,6 +92,20 @@ class Binary {
   /** checks if binary installation path already exists */
   exists(): boolean {
     return existsSync(this.binaryPath)
+  }
+
+  /** removes binary from installation directory */
+  uninstall(suppressLogs?: boolean) {
+    try {
+      rmSync(this.installDirectory, { recursive: true })
+      return true
+    } catch (_e: unknown) {
+      if (!suppressLogs) {
+        console.log(
+          `${this.installDirectory} not found. Deletion unnecessary.`,
+        )
+      }
+    }
   }
 
   /** downloads, extracts and installs binary from given location on the web */
@@ -109,19 +122,7 @@ class Binary {
       return Promise.resolve()
     }
 
-    let installDirClean = false
-
-    try {
-      rmSync(this.installDirectory, { recursive: true })
-      installDirClean = true
-      // deno-lint-ignore no-explicit-any
-    } catch (_e: any) {
-      if (!suppressLogs) {
-        console.log(
-          `${this.installDirectory} not found. Deletion unnecessary.`,
-        )
-      }
-    }
+    const installDirClean = this.uninstall(suppressLogs)
 
     if (installDirClean) {
       mkdirSync(this.installDirectory, { recursive: true })
