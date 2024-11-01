@@ -94,7 +94,7 @@ class Binary {
   }
 
   /** removes binary from installation directory */
-  uninstall(suppressLogs?: boolean) {
+  uninstall(suppressLogs?: boolean): true | undefined {
     try {
       rmSync(this.installDirectory, { recursive: true })
       return true
