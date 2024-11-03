@@ -77,7 +77,7 @@ class Binary {
     }
     this.url = url
     this.name = name
-    this.installDirectory = config?.installDirectory || __dirname
+    this.installDirectory = config?.installDirectory || join(__dirname, "bin")
 
     try {
       mkdirSync(this.installDirectory, { recursive: true })
